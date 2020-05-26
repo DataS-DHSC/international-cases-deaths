@@ -15,6 +15,121 @@ base_plot <- function(low_limit){
   return(plot)
 }
 
+
+cumulative_plot <- function(data, type = 'confirmed', line_size, text_move, text_size, x_type, x_start, 
+                            percap, y_trans, x_marker, xlabel_size, int_marker, letter_marker){
+  plot <- base_plot(10)+
+    geom_line(data = data, aes_string(x = 'x_axis', y = type, colour = 'country_region'),
+              size = line_size)+
+    # Add country labels
+    geom_text_repel(data = data %>% dplyr::group_by(country_region) %>% dplyr::filter(x_axis == max(x_axis)),
+                    aes_string(label = 'country_region', x = 'x_axis', y = type, colour = 'country_region'), 
+                    force = text_move, hjust = (text_move * -1), alpha = 1, size = text_size,
+                    min.segment.length = 0.8, segment.size = 0.2, segment.color = 'transparent')
+  if(y_trans == 'log10'){
+    plot <- plot+
+      scale_y_continuous(breaks = 10^(-25:10), # log10 line breaks
+                         minor_breaks = rep(1:9, 21)*(10^rep(-25:10, each=9)), 
+                         labels = scales::label_comma(trim = T),
+                         trans = y_trans)
+  } else {
+    plot <- plot+
+      scale_y_continuous(labels = scales::label_comma(trim = T))
+  }
+  # Add death count markers
+  if(x_marker){ 
+    plot_m <- plot+
+      geom_point(data = subset(data, !is.na(lab)), 
+                 aes_string(x = 'x_axis', y = type, colour = 'country_region'),
+                 size = xlabel_size + 2, alpha = 0.8)+
+      geom_text(data = subset(data, !is.na(lab)),
+                aes_string(x = 'x_axis', y = type, label = 'lab'), color = 'white',
+                size = xlabel_size)
+  } else {
+    plot_m <- plot
+  }
+  # Add intervention markers
+  if(int_marker & letter_marker == 'Categories'){ 
+    plot_i <- plot_m+
+      geom_point(data = subset(data, !is.na(legend)), 
+                 aes_string(x = 'x_axis', y = type, colour = 'country_region'),
+                 size = xlabel_size + 2, alpha = 0.8)+
+      geom_text(data = subset(data, !is.na(legend)),
+                aes_string(x = 'x_axis', y = type, label = 'legend'), color = 'black',
+                size = xlabel_size)
+  } else if (int_marker & letter_marker == 'Individual letters'){
+    plot_i <- plot_m+
+      geom_point(data = subset(data, !is.na(legend_l)), 
+                 aes_string(x = 'x_axis', y = type, colour = 'country_region'),
+                 size = xlabel_size + 2, alpha = 0.8)+
+      geom_text(data = subset(data, !is.na(legend_l)),
+                aes_string(x = 'x_axis', y = type, label = 'legend_l'), color = 'black',
+                size = xlabel_size)
+  } else {
+    plot_i <- plot_m
+  }
+}
+
+rolling_plot <- function(data, type = 'roll_death', line_size, text_move, text_size,
+                         x_start, start_type, percap, 
+                         roll_num, y_trans, x_type, int_marker, 
+                         xlabel_size, x_marker, label = 'deaths'){
+  plot <- base_plot(1)+
+    geom_line(data= data, aes_string(x = 'x_axis', y = type, colour = 'country_region'),
+              size = line_size)+
+    # Add country labels
+    geom_text_repel(data = data %>% dplyr::group_by(country_region) %>% dplyr::filter(x_axis == max(x_axis)),
+                    aes_string(label = 'country_region', x = 'x_axis', y = type, colour = 'country_region'), 
+                    force = text_move, hjust = (text_move * -1), alpha = 1, size = text_size,
+                    segment.color = 'transparent')+
+    # Add main and axis titles 
+    labs(title = paste0('Rolling ', roll_num, '-day average of new ', label, ' per day (up to ', format(max(data$date), '%d %B %Y'), ')'),
+         caption = "Differences between countries' trajectories can reflect differences in testing capacity, determining cause of death, \n and interventions (e.g. social distancing measures) implemented.\nNote that the impact of interventions on transmission can take up to 3 weeks to show in case numbers. \nData source: Johns Hopkins University",
+         x = ifelse(x_type == 'date', '',
+                    paste0('Days since reaching ', x_start, ' confirmed ', start_type, 's')),
+         y = paste0('New ', label, ' (', ifelse(percap == 'not transformed', '', 'per million; '), ifelse(y_trans == 'log10', 'logarithmic', 'linear'), ' scale; rolling ', roll_num, '-day average)'))
+  
+  if(y_trans == 'log10'){
+    plot <- plot+
+      scale_y_continuous(breaks = 10^(-25:10), # log10 line breaks
+                         minor_breaks = rep(1:9, 21)*(10^rep(-25:10, each=9)), 
+                         labels = scales::label_comma(trim = T),
+                         trans = y_trans)
+  } else {
+    plot <- plot+
+      scale_y_continuous(labels = scales::label_comma(trim = T))
+  }
+  if(x_type == 'date') {
+    plot <- plot +
+      scale_x_date(date_labels = "%d %b",
+                   date_breaks = "1 week")
+  }
+  if(x_marker & type == 'roll_conf'){
+    plot_m <- plot+
+      geom_point(data = subset(data, !is.na(lab)), 
+                 aes_string(x = 'x_axis', y = type, colour = 'country_region'),
+                 size = xlabel_size + 2, alpha = 0.8)+
+      geom_text(data = subset(data, !is.na(lab)),
+                aes_string(x = 'x_axis', y = type, colour = 'country_region', label = 'lab'), color = 'white',
+                size = xlabel_size)
+  } else {
+    plot_m <- plot
+  }
+  # Add intervention markers
+  if(int_marker){ 
+    plot_i <- plot_m+
+      geom_point(data = subset(data, !is.na(legend)), 
+                 aes_string(x = 'x_axis', y = type, colour = 'country_region'),
+                 size = xlabel_size + 2, alpha = 0.8)+
+      geom_text(data = subset(data, !is.na(legend)),
+                aes_string(x = 'x_axis', y = type, label = 'legend'), color = 'black',
+                size = xlabel_size)
+  } else {
+    plot_i <- plot_m
+  }
+  return(plot_i)
+}
+
 # Colors taken from: ggthemes::tableau_color_pal('Tableau 20')
 color_palette <- tibble::tribble(~country_region, ~colour,
                                  'Italy', "#4E79A7",

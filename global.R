@@ -25,8 +25,6 @@ pop <- get_pop()
 url <- paste0("https://raw.githubusercontent.com/CSSEGISandData/", # JHU data location
               "COVID-19/master/csse_covid_19_data/", "csse_covid_19_time_series/", 
               "time_series_covid19_", c('confirmed', 'deaths'), "_global.csv")
-confirmed <- get_data(url[1], pop, 'confirmed')
-deaths <- get_data(url[2], pop, 'deaths')
 
 country_col <- as.character(color_palette$colour)
 names(country_col) <- as.character(color_palette$country_region)

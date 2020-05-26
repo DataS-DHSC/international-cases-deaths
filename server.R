@@ -1,7 +1,7 @@
 server <- function(input, output) {
   source('global.R')
-  values <- reactiveValues(confirmed = confirmed,
-                           deaths = deaths)
+  values <- reactiveValues(confirmed = get_data(url[1], pop, 'confirmed'),
+                           deaths = get_data(url[2], pop, 'deaths'))
   
   #### PREPARING DATA ####
   # Calculate rolling averages and re-name columns
@@ -104,63 +104,19 @@ server <- function(input, output) {
   
   #### CONFIRMED CASES ####
   graph_conf <- reactive({
-    plot <- base_plot(10)+
-      geom_line(data = start_x(), aes(x = x_axis, y = confirmed, colour = country_region),
-                size = input$line_size)+
-      # Add country labels
-      geom_text_repel(data = start_x() %>% dplyr::group_by(country_region) %>% dplyr::filter(x_axis == max(x_axis)),
-                      aes(label = country_region, x = x_axis, y = confirmed, colour = country_region), 
-                      force = input$text_move, hjust = (input$text_move * -1), alpha = 1, size = input$text_size,
-                      min.segment.length = 0.8, segment.size = 0.2, segment.color = 'transparent') +
+    plot <- cumulative_plot(start_x(), type = 'confirmed', input$line_size, input$text_move, 
+                            input$text_size, input$x_type, input$x_start, 
+                            input$percap, input$y_trans, input$x_marker, 
+                            input$xlabel_size, input$int_marker, input$letter_marker)
+    plot <- plot+  
       # Set main and axis titles
       labs(title = paste0('Cumulative number of cases (up to ', format(max(start_x()$date), '%d %B %Y'), ')'),
            caption = "The 'X' represents the date when 10 deaths were recorded in that country; 'C' represents 100 deaths, and 'M' represents 1000 deaths.\nNote that the impact of interventions on transmission can take up to 3 weeks to show in case numbers. \nDifferences between countries' trajectories can reflect differences in testing strategies (i.e. who is offered the test), \ntesting capacity, and interventions (e.g. social distancing measures) implemented. \nData source: Johns Hopkins University",
            x = ifelse(input$x_type == 'date', '',
                       paste0('Days since reaching ', input$x_start, ' confirmed ', input$start_type, 's')),
-           y = paste0('Cumulative case number (', ifelse(input$percap == 'not transformed', '', 'per million; '), ifelse(input$y_trans == 'log10', 'logarithmic', 'linear'), ' scale)'))
-    if(input$y_trans == 'log10'){
-      plot <- plot+
-        scale_y_continuous(breaks = 10^(-25:10), # log10 line breaks
-                           minor_breaks = rep(1:9, 21)*(10^rep(-25:10, each=9)), 
-                           labels = scales::label_comma(trim = T),
-                           trans = input$y_trans)
-    } else {
-      plot <- plot+
-        scale_y_continuous(labels = scales::label_comma(trim = T))
-    }
-    # Add death count markers
-    if(input$x_marker){ 
-      plot_m <- plot+
-        geom_point(data = subset(start_x(), !is.na(lab)), 
-                   aes(x = x_axis, y = confirmed, colour = country_region),
-                   size = input$xlabel_size + 2, alpha = 0.8)+
-        geom_text(data = subset(start_x(), !is.na(lab)),
-                  aes(x = x_axis, y = confirmed, label = lab), color = 'white',
-                  size = input$xlabel_size)
-    } else {
-      plot_m <- plot
-    }
-    # Add intervention markers
-    if(input$int_marker & input$letter_marker == 'Categories'){ 
-      plot_i <- plot_m+
-        geom_point(data = subset(start_x(), !is.na(legend)), 
-                   aes(x = x_axis, y = confirmed, colour = country_region),
-                   size = input$xlabel_size + 2, alpha = 0.8)+
-        geom_text(data = subset(start_x(), !is.na(legend)),
-                  aes(x = x_axis, y = confirmed, label = legend), color = 'black',
-                  size = input$xlabel_size)
-    } else if (input$int_marker & input$letter_marker == 'Individual letters'){
-      plot_i <- plot_m+
-        geom_point(data = subset(start_x(), !is.na(legend_l)), 
-                   aes(x = x_axis, y = confirmed, colour = country_region),
-                   size = input$xlabel_size + 2, alpha = 0.8)+
-        geom_text(data = subset(start_x(), !is.na(legend_l)),
-                  aes(x = x_axis, y = confirmed, label = legend_l), color = 'black',
-                  size = input$xlabel_size)
-    } else {
-      plot_i <- plot_m
-    }
-    return(plot_i)
+           y = paste0('Cumulative cases (', ifelse(input$percap == 'not transformed', '', 'per million; '), ifelse(input$y_trans == 'log10', 'logarithmic', 'linear'), ' scale)'))
+    
+    return(plot)
   })
   
   # Render the plot
@@ -199,49 +155,18 @@ server <- function(input, output) {
   
   #### DEATHS ####
   graph_death <- reactive({
-    plot <- base_plot(1)+
-      geom_line(data= start_x(), aes(x = x_axis, y = deaths, colour = country_region),
-                size = input$line_size)+
-      # Add country labels
-      geom_text_repel(data = start_x() %>% dplyr::group_by(country_region) %>% dplyr::filter(x_axis == max(x_axis)),
-                      aes(label = country_region, x = x_axis, y = deaths, colour = country_region), 
-                      force = input$text_move, alpha = 1, size = input$text_size,
-                      segment.color = 'transparent')+
+    plot <- cumulative_plot(start_x(), type = 'deaths', input$line_size, input$text_move, 
+                            input$text_size, input$x_type, input$x_start, 
+                            input$percap, input$y_trans, input$x_marker, 
+                            input$xlabel_size, input$int_marker, input$letter_marker)
+    plot <- plot+
       # Set main and axis titles
       labs(title = paste0('Cumulative number of deaths (up to ', format(max(start_x()$date), '%d %B %Y'), ')'),
-           caption = "Data for UK shows DHSC published daily totals for all those who have died following a positive test.\nDifferences between countries' trajectories can reflect differences in determining cause of death, \ntesting capacity, and interventions (e.g. social distancing measures) implemented.\nNote that the impact of interventions on transmission can take up to 3 weeks to show in case numbers. \nData source: Johns Hopkins University, PHE",
+           caption = "Differences between countries' trajectories can reflect differences in testing capacity, determining cause of death, \n and interventions (e.g. social distancing measures) implemented.\nNote that the impact of interventions on transmission can take up to 3 weeks to show in case numbers. \nData source: Johns Hopkins University",
            x = ifelse(input$x_type == 'date', '',
                       paste0('Days since reaching ', input$x_start, ' confirmed ', input$start_type, 's')),
-           y = paste0('Cumulative death number (', ifelse(input$percap == 'not transformed', '', 'per million; '), ifelse(input$y_trans == 'log10', 'logarithmic', 'linear'), ' scale)'))
-    if(input$y_trans == 'log10'){
-      plot <- plot+
-        scale_y_continuous(breaks = 10^(-25:10), # log10 line breaks
-                           minor_breaks = rep(1:9, 21)*(10^rep(-25:10, each=9)), 
-                           labels = scales::label_comma(trim = T),
-                           trans = input$y_trans)
-    } else {
-      plot <- plot+
-        scale_y_continuous(labels = scales::label_comma(trim = T))
-    }
-    if(input$x_type == 'date') {
-      plot <- plot +
-        scale_x_date(date_labels = "%d %b",
-                     date_breaks = "1 week")
-    }
-    
-    # Add intervention markers
-    if(input$int_marker){ 
-      plot_i <- plot+
-        geom_point(data = subset(start_x(), !is.na(legend)), 
-                   aes(x = x_axis, y = deaths, colour = country_region),
-                   size = input$xlabel_size + 2, alpha = 0.8)+
-        geom_text(data = subset(start_x(), !is.na(legend)),
-                  aes(x = x_axis, y = deaths, label = legend), color = 'black',
-                  size = input$xlabel_size)
-    } else {
-      plot_i <- plot
-    }
-    return(plot_i)
+           y = paste0('Cumulative deaths (', ifelse(input$percap == 'not transformed', '', 'per million; '), ifelse(input$y_trans == 'log10', 'logarithmic', 'linear'), ' scale)'))
+    return(plot)
   })
   
   output$graph_death <- renderPlot({
@@ -286,48 +211,12 @@ server <- function(input, output) {
   
   #### ROLLING NEW DEATHS ####
   roll_deaths <- reactive({
-    plot <- base_plot(1)+
-      geom_line(data= start_x(), aes(x = x_axis, y = roll_death, colour = country_region),
-                size = input$line_size)+
-      # Add country labels
-      geom_text_repel(data = start_x() %>% dplyr::group_by(country_region) %>% dplyr::filter(x_axis == max(x_axis)),
-                      aes(label = country_region, x = x_axis, y = roll_death, colour = country_region), 
-                      force = input$text_move, hjust = (input$text_move * -1), alpha = 1, size = input$text_size,
-                      segment.color = 'transparent')+
-      # Add main and axis titles 
-      labs(title = paste0('Rolling ', input$roll_num, '-day average of new deaths per day (up to ', format(max(start_x()$date), '%d %B %Y'), ')'),
-           caption = "Differences between countries' trajectories can reflect differences in determining cause of death, \ntesting capacity, and interventions (e.g. social distancing measures) implemented.\nNote that the impact of interventions on transmission can take up to 3 weeks to show in case numbers. \nData source: Johns Hopkins University",
-           x = ifelse(input$x_type == 'date', '',
-                      paste0('Days since reaching ', input$x_start, ' confirmed ', input$start_type, 's')),
-           y = paste0('New deaths (', ifelse(input$percap == 'not transformed', '', 'per million; '), ifelse(input$y_trans == 'log10', 'logarithmic', 'linear'), ' scale; rolling ', input$roll_num, '-day average)'))
-    if(input$y_trans == 'log10'){
-      plot <- plot+
-        scale_y_continuous(breaks = 10^(-25:10), # log10 line breaks
-                           minor_breaks = rep(1:9, 21)*(10^rep(-25:10, each=9)), 
-                           labels = scales::label_comma(trim = T),
-                           trans = input$y_trans)
-    } else {
-      plot <- plot+
-        scale_y_continuous(labels = scales::label_comma(trim = T))
-    }
-    if(input$x_type == 'date') {
-      plot <- plot +
-        scale_x_date(date_labels = "%d %b",
-                     date_breaks = "1 week")
-    }
-    # Add intervention markers
-    if(input$int_marker){ 
-      plot_i <- plot+
-        geom_point(data = subset(start_x(), !is.na(legend)), 
-                   aes(x = x_axis, y = roll_death, colour = country_region),
-                   size = input$xlabel_size + 2, alpha = 0.8)+
-        geom_text(data = subset(start_x(), !is.na(legend)),
-                  aes(x = x_axis, y = roll_death, label = legend), color = 'black',
-                  size = input$xlabel_size)
-    } else {
-      plot_i <- plot
-    }
-    return(plot_i)
+    plot <- rolling_plot(start_x(), type = 'roll_death', 
+                         input$line_size, input$text_move, input$text_size,
+                         input$x_start, input$start_type, input$percap, 
+                         input$roll_num, input$y_trans, input$x_type, input$int_marker, 
+                         input$xlabel_size, input$x_marker, label = 'deaths')
+    return(plot)
   })
   
   output$roll_deaths <- renderPlot({
@@ -344,55 +233,12 @@ server <- function(input, output) {
   
   #### ROLLING NEW CASES ####
   roll_cases <- reactive({
-    plot <- base_plot(1)+
-      geom_line(data= start_x(), aes(x = x_axis, y = roll_conf, colour = country_region),
-                size = input$line_size)+
-      # Add country labels
-      geom_text_repel(data = start_x() %>% dplyr::group_by(country_region) %>% dplyr::filter(x_axis == max(x_axis)),
-                      aes(label = country_region, x = x_axis, y = roll_conf, colour = country_region), 
-                      force = input$text_move, hjust = (input$text_move * -1), alpha = 1, size = input$text_size,
-                      segment.color = 'transparent')+
-      # Add main and axis titles 
-      labs(title = paste0('Rolling ', input$roll_num, '-day average of new cases per day (up to ', format(max(start_x()$date), '%d %B %Y'), ')'),
-           caption = "Differences between countries' trajectories can reflect differences in testing capacity, \nand interventions (e.g. social distancing measures) implemented.\nNote that the impact of interventions on transmission can take up to 3 weeks to show in case numbers. \nData source: Johns Hopkins University",
-           x = ifelse(input$x_type == 'date', '',
-                      paste0('Days since reaching ', input$x_start, ' confirmed ', input$start_type, 's')),
-           y = paste0('New cases (', ifelse(input$percap == 'not transformed', '', 'per million; '), ifelse(input$y_trans == 'log10', 'logarithmic', 'linear'), ' scale; rolling ', input$roll_num, '-day average)'))
-    if(input$y_trans == 'log10'){
-      plot <- plot+
-        scale_y_continuous(breaks = 10^(-25:10), # log10 line breaks
-                           minor_breaks = rep(1:9, 21)*(10^rep(-25:10, each=9)), 
-                           labels = scales::label_comma(trim = T),
-                           trans = input$y_trans)
-    } else {
-      plot <- plot+
-        scale_y_continuous(labels = scales::label_comma(trim = T))
-    }
-    # Add death markers
-    if(input$x_marker){
-      plot_m <- plot+
-        geom_point(data = subset(start_x(), !is.na(lab)), 
-                   aes(x = x_axis, y = roll_conf, colour = country_region),
-                   size = input$xlabel_size + 2, alpha = 0.8)+
-        geom_text(data = subset(start_x(), !is.na(lab)),
-                  aes(x = x_axis, y = roll_conf, colour = country_region, label = lab), color = 'white',
-                  size = input$xlabel_size)
-    } else {
-      plot_m <- plot
-    }
-    # Add intervention markers
-    if(input$int_marker){ 
-      plot_i <- plot_m+
-        geom_point(data = subset(start_x(), !is.na(legend)), 
-                   aes(x = x_axis, y = roll_conf, colour = country_region),
-                   size = input$xlabel_size + 2, alpha = 0.8)+
-        geom_text(data = subset(start_x(), !is.na(legend)),
-                  aes(x = x_axis, y = roll_conf, label = legend), color = 'black',
-                  size = input$xlabel_size)
-    } else {
-      plot_i <- plot_m
-    }
-    return(plot_i)
+    plot <- rolling_plot(start_x(), type = 'roll_conf', 
+                         input$line_size, input$text_move, input$text_size,
+                         input$x_start, input$start_type, input$percap, 
+                         input$roll_num, input$y_trans, input$x_type, input$int_marker, 
+                         input$xlabel_size, input$x_marker, label = 'cases')
+    return(plot)
   })
   
   output$roll_cases <- renderPlot({
