@@ -106,7 +106,7 @@ server <- function(input, output) {
   graph_conf <- reactive({
     plot <- cumulative_plot(start_x(), type = 'confirmed', input$line_size, input$text_move, 
                             input$text_size, input$x_type, input$x_start, 
-                            input$percap, input$y_trans, input$x_marker, 
+                            input$percap, input$day_start, input$y_trans, input$x_marker, 
                             input$xlabel_size, input$int_marker, input$letter_marker)
     plot <- plot+  
       # Set main and axis titles
@@ -157,7 +157,7 @@ server <- function(input, output) {
   graph_death <- reactive({
     plot <- cumulative_plot(start_x(), type = 'deaths', input$line_size, input$text_move, 
                             input$text_size, input$x_type, input$x_start, 
-                            input$percap, input$y_trans, input$x_marker, 
+                            input$percap, input$day_start, input$y_trans, input$x_marker, 
                             input$xlabel_size, input$int_marker, input$letter_marker)
     plot <- plot+
       # Set main and axis titles
@@ -213,7 +213,7 @@ server <- function(input, output) {
   roll_deaths <- reactive({
     plot <- rolling_plot(start_x(), type = 'roll_death', 
                          input$line_size, input$text_move, input$text_size,
-                         input$x_start, input$start_type, input$percap, 
+                         input$x_start, input$start_type, input$percap, input$day_start, 
                          input$roll_num, input$y_trans, input$x_type, input$int_marker, 
                          input$xlabel_size, input$x_marker, label = 'deaths')
     return(plot)
@@ -235,7 +235,7 @@ server <- function(input, output) {
   roll_cases <- reactive({
     plot <- rolling_plot(start_x(), type = 'roll_conf', 
                          input$line_size, input$text_move, input$text_size,
-                         input$x_start, input$start_type, input$percap, 
+                         input$x_start, input$start_type, input$percap, input$day_start, 
                          input$roll_num, input$y_trans, input$x_type, input$int_marker, 
                          input$xlabel_size, input$x_marker, label = 'cases')
     return(plot)

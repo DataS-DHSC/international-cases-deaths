@@ -17,10 +17,11 @@ base_plot <- function(low_limit){
 
 
 cumulative_plot <- function(data, type = 'confirmed', line_size, text_move, text_size, x_type, x_start, 
-                            percap, y_trans, x_marker, xlabel_size, int_marker, letter_marker){
+                            percap, day_start, y_trans, x_marker, xlabel_size, int_marker, letter_marker){
   plot <- base_plot(10)+
     geom_line(data = data, aes_string(x = 'x_axis', y = type, colour = 'country_region'),
               size = line_size)+
+    scale_x_continuous(limits = c(day_start, NA))+
     # Add country labels
     geom_text_repel(data = data %>% dplyr::group_by(country_region) %>% dplyr::filter(x_axis == max(x_axis)),
                     aes_string(label = 'country_region', x = 'x_axis', y = type, colour = 'country_region'), 
@@ -71,7 +72,7 @@ cumulative_plot <- function(data, type = 'confirmed', line_size, text_move, text
 }
 
 rolling_plot <- function(data, type = 'roll_death', line_size, text_move, text_size,
-                         x_start, start_type, percap, 
+                         x_start, start_type, percap, day_start,
                          roll_num, y_trans, x_type, int_marker, 
                          xlabel_size, x_marker, label = 'deaths'){
   plot <- base_plot(1)+
@@ -82,6 +83,7 @@ rolling_plot <- function(data, type = 'roll_death', line_size, text_move, text_s
                     aes_string(label = 'country_region', x = 'x_axis', y = type, colour = 'country_region'), 
                     force = text_move, hjust = (text_move * -1), alpha = 1, size = text_size,
                     segment.color = 'transparent')+
+    scale_x_continuous(limits = c(day_start, NA))+
     # Add main and axis titles 
     labs(title = paste0('Rolling ', roll_num, '-day average of new ', label, ' per day (up to ', format(max(data$date), '%d %B %Y'), ')'),
          caption = "Differences between countries' trajectories can reflect differences in testing capacity, determining cause of death, \n and interventions (e.g. social distancing measures) implemented.\nNote that the impact of interventions on transmission can take up to 3 weeks to show in case numbers. \nData source: Johns Hopkins University",
