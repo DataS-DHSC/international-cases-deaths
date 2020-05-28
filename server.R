@@ -51,7 +51,7 @@ server <- function(input, output) {
   # Add markers (interventions & deaths) to data
   wide_rel <- reactive({
     wide_relevant <- wide_data() %>%
-      dplyr::filter(country_region %in% input$countries) %>%
+      dplyr::filter(country_region %in% c(input$countries, input$add_countries)) %>%
       dplyr::left_join(death_markers(), by = c('country_region', 'date')) %>% # Add 10, 100, and 1000 deaths markers
       dplyr::left_join(ints(), by = c('country_region', 'date')) # Add intervention markers
     return(wide_relevant)
@@ -93,7 +93,7 @@ server <- function(input, output) {
     conf_roll <- roll_avg(values$confirmed, 'confirmed', input$roll_num)
     death_roll <- roll_avg(values$deaths, 'deaths', input$roll_num)
     long_data <- dplyr::bind_rows(conf_roll, death_roll) %>%
-      dplyr::filter(country_region %in% input$countries) %>% 
+      dplyr::filter(country_region %in% c(input$countries, input$add_countries)) %>% 
       dplyr::left_join(death_markers(), by = c('country_region', 'date')) %>% # Add 10, 100, and 1000 deaths markers
       dplyr::left_join(ints(), by = c('country_region', 'date')) %>% # Add intervention markers
       dplyr::mutate(date = as.Date(date, origin = '1970-01-01'))
