@@ -139,17 +139,20 @@ color_palette <- tibble::tribble(~country_region, ~colour,
                                  'Spain', "#A0CBE8",
                                  'France', "#FFBE7D",
                                  'US', "#59A14F",
-                                 'Germany', "#B07AA1",
+                                 'Germany', "#006400",
                                  'Japan', "#86BCB6",
                                  'UK', "#E15759")
 countries <- unique(color_palette$country_region)
 
-other_countries <- add_countries[!(add_countries %in% color_palette$country_region)]
-colours <- rep(ggthemes_data[["tableau"]][["color-palettes"]][["regular"]]$`Superfishel Stone`$value, length.out = length(other_countries))
-others <- data.frame(country_region = other_countries,
+
+add_countries <- unique(get_data(url[1], pop, 'confirmed')$country_region)
+add_countries <- add_countries[!(add_countries %in% countries)]
+colours <- rep(ggthemes_data[["tableau"]][["color-palettes"]][["regular"]]$`Superfishel Stone`$value, 
+               length.out = length(add_countries))
+add_countries <- data.frame(country_region = add_countries,
                      colour = colours,
                      stringsAsFactors = FALSE)
-color_palette <- rbind(color_palette, others)
+color_palette <- rbind(color_palette, add_countries)
 
 #### GOVERNMENT INTERVENTIONS ####
 # Note: this is NOT an exhaustive list of government responses to the COVID-19 pandemic. 
@@ -175,7 +178,8 @@ interventions <- tibble::tribble( ~include, ~country_region, ~date, ~measure, ~i
                                   TRUE, 'Hong Kong', '2020-01-28', '3-week lockdown, school closures', 'lockdown',
                                   TRUE, 'China', '2020-01-23', 'Lockdown of Wuhan, Hubei and hubs', 'lockdown',
                                   TRUE, 'Hong Kong', '2020-05-04', 'Civil servants return to work','isolation restrictions easing',
-                                  TRUE, 'Hong Kong', '2020-05-08', 'Start of relaxation of gatherings, bars and restaurants phased reopening on 21/05','gatherings restrictions easing', 
+                                  TRUE, 'Hong Kong', '2020-05-08', 'Start of relaxation of gatherings, bars and restaurants phased reopening on 21/05','gatherings restrictions easing',
+                                  TRUE, 'Hong Kong', '2020-05-27', 'School classes resume excluding higher education', 'education restrictions easing', 
                                   TRUE, 'South Korea', '2020-04-16', 'All educational facilities opening, depending on resurgence of cases','education restrictions easing',
                                   TRUE, 'South Korea', '2020-04-19', 'Social distancing rules relaxed', 'isolation restrictions easing', 
                                   TRUE, 'Netherlands', '2020-05-11', 'Public transport resuming pre-lockdown service', 'isolation restrictions easing', 
@@ -183,15 +187,20 @@ interventions <- tibble::tribble( ~include, ~country_region, ~date, ~measure, ~i
                                   TRUE, 'Netherlands', '2020-05-11', 'Libraries, team sports and personal grooming services open', 'gatherings restrictions easing', 
                                   TRUE, 'Italy', '2020-05-04', 'Movement within reigons and family visits at home allowed', 'isolation restrictions easing', 
                                   TRUE, 'Italy', '2020-05-04', 'Vists to relatives, parks open and takeway food and drink allowed', 'gatherings restrictions easing', 
+                                  TRUE, 'Italy', '2020-06-03', 'travel between regions and abroad allowed but limited','isolation restrictions easing',
                                   TRUE, 'Germany', '2020-05-04', 'Pre-school, primary and secondary school open with social distancing', 'education restrictions easing', 
                                   TRUE, 'Germany', '2020-05-06', 'Ban on gatherings lifted and social/cultural venues and small shops start to open', 'gatherings restrictions easing', 
                                   TRUE, 'Germany', '2020-05-15', 'Restrictions of entry at the Luxembourg border relaxed','isolation restrictions easing',
                                   TRUE, 'Japan', '2020-05-14', 'State of Emergency lifted for 39/47 prefectures, non-essential shops reopening', 'gatherings restrictions easing',
                                   TRUE, 'US', '2020-05-13', 'Restrictions on gatherings and stay at home orders no longer in all states', 'gatherings restrictions easing',
-                                  TRUE, 'US', '2020-05-14', 'Education recommendations vary by state', 'education restrictions easing',
+                                  TRUE, 'US', '2020-05-14', 'Education recommendations vary by state', 'education restrictions easing', 
                                   TRUE, 'France', '2020-05-11', 'Some people return to work and public trasport service will increase', 'isolation restrictions easing',
-                                  TRUE, 'Spain', '2020-05-11', 'Social venues, e.g. bars, start to open with social distancing', 'gatherings restrictions easing', 
+                                  TRUE, 'Spain', '2020-05-11', 'Social venues, e.g. bars, start to open with social distancing', 'gatherings restrictions easing',
+                                  TRUE, 'Spain', '2020-05-26', 'Partial reopening of schools for revision and state exams', 'education restrictions easing',
+                                  TRUE, 'Spain', '2020-05-26', 'Phase 2 residents can move freely around their region and limited relaxation in home isolation for vulnerable', 'isolation restrictions easing',
                                   TRUE, 'France', '2020-05-11', 'Gatherings of up to 10 allowed, shops and some social/cultural venues opening', 'gatherings restrictions easing',
                                   TRUE, 'UK', '2020-05-13', 'Unlimited exercise and use of parks for non-exercise activities allowed and garden centres open', 'gatherings restrictions easing',
+                                  TRUE, 'UK', '2020-06-01', 'Schools open for children in reception, year 1 and year 6', 'education restrictions easing', 
+                                  TRUE, 'UK', '2020-06-01', 'Clinically vulnerable individuals can now leave their homes and meet 1 person outside', 'isolation restrictions easing',
                                   TRUE, 'France', '2020-05-11', 'Phased, non-compulsory opening of primary schools', 'education restrictions easing') %>%
   dplyr::mutate(include = as.logical(include))

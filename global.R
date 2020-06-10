@@ -17,15 +17,15 @@ library(ggrepel)
 source('data_processing/data_cleaning.R')
 source('data_processing/get_data.R')
 
-#### GETTING COUNTRIES & INTERVENTIONS LIST ####
-source('data/vis_settings.R')
-
 #### PREPARING THE REST OF THE DATA ####
 pop <- get_pop()
 url <- paste0("https://raw.githubusercontent.com/CSSEGISandData/", # JHU data location
               "COVID-19/master/csse_covid_19_data/", "csse_covid_19_time_series/", 
               "time_series_covid19_", c('confirmed', 'deaths'), "_global.csv")
-add_countries <- unique(get_data(url[1], pop, 'confirmed')$country_region)
+
+#### GETTING COUNTRIES & INTERVENTIONS LIST ####
+source('data/vis_settings.R')
 country_col <- as.character(color_palette$colour)
 names(country_col) <- as.character(color_palette$country_region)
+
 
