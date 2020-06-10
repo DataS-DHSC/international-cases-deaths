@@ -139,7 +139,7 @@ color_palette <- tibble::tribble(~country_region, ~colour,
                                  'Spain', "#A0CBE8",
                                  'France', "#FFBE7D",
                                  'US', "#59A14F",
-                                 'Germany', "#B07AA1",
+                                 'Germany', "#006400",
                                  'Japan', "#86BCB6",
                                  'UK', "#E15759")
 countries <- unique(color_palette$country_region)
@@ -187,6 +187,7 @@ interventions <- tibble::tribble( ~include, ~country_region, ~date, ~measure, ~i
                                   TRUE, 'Netherlands', '2020-05-11', 'Libraries, team sports and personal grooming services open', 'gatherings restrictions easing', 
                                   TRUE, 'Italy', '2020-05-04', 'Movement within reigons and family visits at home allowed', 'isolation restrictions easing', 
                                   TRUE, 'Italy', '2020-05-04', 'Vists to relatives, parks open and takeway food and drink allowed', 'gatherings restrictions easing', 
+                                  TRUE, 'Italy', '2020-06-03', 'travel between regions and abroad allowed but limited','isolation restrictions easing',
                                   TRUE, 'Germany', '2020-05-04', 'Pre-school, primary and secondary school open with social distancing', 'education restrictions easing', 
                                   TRUE, 'Germany', '2020-05-06', 'Ban on gatherings lifted and social/cultural venues and small shops start to open', 'gatherings restrictions easing', 
                                   TRUE, 'Germany', '2020-05-15', 'Restrictions of entry at the Luxembourg border relaxed','isolation restrictions easing',
@@ -196,7 +197,10 @@ interventions <- tibble::tribble( ~include, ~country_region, ~date, ~measure, ~i
                                   TRUE, 'France', '2020-05-11', 'Some people return to work and public trasport service will increase', 'isolation restrictions easing',
                                   TRUE, 'Spain', '2020-05-11', 'Social venues, e.g. bars, start to open with social distancing', 'gatherings restrictions easing',
                                   TRUE, 'Spain', '2020-05-26', 'Partial reopening of schools for revision and state exams', 'education restrictions easing',
+                                  TRUE, 'Spain', '2020-05-26', 'Phase 2 residents can move freely around their region and limited relaxation in home isolation for vulnerable', 'isolation restrictions easing',
                                   TRUE, 'France', '2020-05-11', 'Gatherings of up to 10 allowed, shops and some social/cultural venues opening', 'gatherings restrictions easing',
                                   TRUE, 'UK', '2020-05-13', 'Unlimited exercise and use of parks for non-exercise activities allowed and garden centres open', 'gatherings restrictions easing',
+                                  TRUE, 'UK', '2020-06-01', 'Schools open for children in reception, year 1 and year 6', 'education restrictions easing', 
+                                  TRUE, 'UK', '2020-06-01', 'Clinically vulnerable individuals can now leave their homes and meet 1 person outside', 'isolation restrictions easing',
                                   TRUE, 'France', '2020-05-11', 'Phased, non-compulsory opening of primary schools', 'education restrictions easing') %>%
   dplyr::mutate(include = as.logical(include))
