@@ -87,6 +87,16 @@ server <- function(input, output) {
     return(start_x)
   })
   
+  ### Data for mapping ###
+  map_data <- reactive({
+    dplyr::full_join(values$confirmed, values$deaths) %>%
+      dplyr::filter(date == max(date)) %>%
+      dplyr::left_join(map.world, ., by = c('region' = 'country_region')) %>%
+      dplyr::filter(!is.na(confirmed)) %>% 
+      dplyr::mutate(conf_per100k = confirmed / (X2020 / 100000),
+                    death_per100k = deaths / (X2020 / 100000))
+  })
+  
   
   ### Long data for heatmap only ###
   long_data <- reactive({
@@ -250,4 +260,48 @@ server <- function(input, output) {
                                         options = list(
                                           pageLength = 20,
                                           scrollX = T))
+  
+  #### MAP ####
+  output$case_map <- renderPlot({
+    ggplot()+
+      geom_map(data = map_data(), map = map.world, aes(map_id = region, 
+                                                      x = long, y = lat, 
+                                                      fill = conf_per100k),
+               colour = 'black')+
+      scale_fill_gradient(low='white', high = 'red')+
+      theme_minimal()+
+      labs(title = paste0("Cumulative COVID cases per 100.000 population in each country as of ", max(map_data()$date)),
+           subtitle = "Note that some countries are not represented in JHU data.")+
+      theme(axis.line=element_blank(),
+            axis.text.x=element_blank(),
+            axis.text.y=element_blank(),
+            axis.ticks=element_blank(),
+            axis.title.x=element_blank(),
+            axis.title.y=element_blank())
+  })
+  
+  output$death_map <- renderPlot({
+    ggplot()+
+      geom_map(data = map_data(), map = map.world, aes(map_id = region, 
+                                                       x = long, y = lat, 
+                                                       fill = death_per100k),
+               colour = 'black')+
+      scale_fill_gradient(low='white', high = 'red')+
+      theme_minimal()+
+      labs(title = paste0("Cumulative COVID deaths per 100.000 population in each country as of ", max(map_data()$date)),
+           subtitle = "Note that some countries are not represented in JHU data.")+
+      theme(axis.line=element_blank(),
+            axis.text.x=element_blank(),
+            axis.text.y=element_blank(),
+            axis.ticks=element_blank(),
+            axis.title.x=element_blank(),
+            axis.title.y=element_blank())
+  })
+  
+  output$map_data <- renderDataTable(map_data() %>%
+                                       dplyr::select(region, date, confirmed, deaths, population = X2020, conf_per100k, death_per100k) %>%
+                                       unique(.),
+                                     options = list(
+                                       pageLength = 20,
+                                       scrollX = T))
 }

@@ -113,6 +113,13 @@ ui <- fluidPage(
                                    hr(),
                                    h3('Raw data'),
                                    dataTableOutput(outputId = "roll_data")),
+                          tabPanel("Maps",
+                                   h3("Latest maps of cumulative cases and deaths per 100k population"),
+                                   plotOutput("case_map"),
+                                   hr(),
+                                   plotOutput("death_map"),
+                                   hr(),
+                                   dataTableOutput(outputId = "map_data")),
                           tabPanel("Interventions legend",
                                    h3('Legend of interventions'),
                                    dataTableOutput("data_int"),)

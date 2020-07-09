@@ -8,6 +8,7 @@ library(forcats)
 library(readxl)
 library(readr)
 library(ggplot2)
+library(maps)
 library(scales)
 library(ggthemes)
 library(ggrepel)
@@ -19,6 +20,8 @@ source('data_processing/get_data.R')
 
 #### PREPARING THE REST OF THE DATA ####
 pop <- get_pop()
+map.world <- ggplot2::map_data(map = "world") %>%
+  dplyr::mutate(region = clean_country(region))
 url <- paste0("https://raw.githubusercontent.com/CSSEGISandData/", # JHU data location
               "COVID-19/master/csse_covid_19_data/", "csse_covid_19_time_series/", 
               "time_series_covid19_", c('confirmed', 'deaths'), "_global.csv")
