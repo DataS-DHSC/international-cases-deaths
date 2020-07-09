@@ -9,6 +9,22 @@ clean_country <- function(country_vec){
     country_vec == 'Iran (Islamic Republic of)' ~ 'Iran',
     country_vec == 'China, Taiwan Province of China' ~ 'Taiwan',
     country_vec == 'China, Hong Kong SAR' ~ 'Hong Kong',
+    country_vec == 'Czech Republic' ~ 'Czechia',
+    country_vec == 'Congo (Kinshasa)' ~ 'Democratic Republic of the Congo',
+    country_vec == 'Congo (Brazzaville)' ~ 'Congo',
+    country_vec == 'Republic of Congo' ~ 'Congo',
+    country_vec == 'Ivory Coast' ~ "Cote d'Ivoire",
+    country_vec == "Côte d'Ivoire" ~ "Cote d'Ivoire",
+    country_vec == 'Russian Federation' ~ 'Russia',
+    country_vec == "Lao People's Democratic Republic" ~ 'Laos',
+    country_vec == 'Burma' ~ 'Myanmar',
+    country_vec == 'Swaziland' ~ 'Eswatini',
+    country_vec == 'United Republic of Tanzania' ~ 'Tanzania',
+    country_vec == 'Syrian Arab Republic' ~ 'Syria',
+    country_vec == 'Viet Nam' ~ 'Vietnam',
+    country_vec == 'Venezuela (Bolivarian Republic of)' ~ 'Venezuela',
+    country_vec == 'Bolivia (Plurinational State of)' ~ 'Bolivia',
+    country_vec == 'Republic of Moldova' ~ 'Moldova',
     TRUE ~ country_vec)
   return(country_vec)
 }

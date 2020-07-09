@@ -24,6 +24,7 @@ get_data <- function(url, pop_df, colname){
       province_state == 'Hong Kong' ~ 'Hong Kong', # Move other SAR to own category
       TRUE ~ country_region
     )) %>%
+    dplyr::mutate(country_region = clean_country(country_region)) %>%
     pivot_data(., colname) %>% # Pivot to long-form
     dplyr::left_join(pop, by = 'country_region') # Add population data
   return(data)
