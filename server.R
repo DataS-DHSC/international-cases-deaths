@@ -268,7 +268,7 @@ server <- function(input, output) {
                                                       x = long, y = lat, 
                                                       fill = conf_per100k),
                colour = 'black')+
-      scale_fill_gradient(low='white', high = 'red')+
+      scale_fill_gradientn(colors = rev(heat.colors(10))[c(1,4,6:10)])+
       theme_minimal()+
       labs(title = paste0("Cumulative COVID cases per 100.000 population in each country as of ", max(map_data()$date)),
            subtitle = "Note that some countries are not represented in JHU data.")+
@@ -286,7 +286,7 @@ server <- function(input, output) {
                                                        x = long, y = lat, 
                                                        fill = death_per100k),
                colour = 'black')+
-      scale_fill_gradient(low='white', high = 'red')+
+      scale_fill_gradientn(colors = rev(heat.colors(10))[c(1,4,6:10)])+
       theme_minimal()+
       labs(title = paste0("Cumulative COVID deaths per 100.000 population in each country as of ", max(map_data()$date)),
            subtitle = "Note that some countries are not represented in JHU data.")+
